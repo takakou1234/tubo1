@@ -16,24 +16,24 @@
     "depth": "0.5–1.0寸",
     "source": "Pocket361"
   },
-  "TE5": {
-    "name_ja": "外関（ガイカン）",
-    "name_en": "Waiguan",
-    "meridian": "TE",
-    "region": "前腕背側",
-    "location": "手関節背横紋の上2寸、橈尺骨間の溝中。",
-    "location_simple": "手首の甲のしわから肘方向へ指3本、2本の骨のあいだのくぼみ。",
-    "effects": [
-      "肩こり",
-      "首こり",
-      "頭痛",
-      "手のしびれ",
-      "風邪の初期"
-    ],
-    "depth": "0.5–1.0寸",
-    "source": "Pocket361"
-    "illustration": "tutorial/tutorial/te5_gaikan_demo.png"
-  },
+"TE5": {
+  "name_ja": "外関（ガイカン）",
+  "name_en": "Waiguan",
+  "meridian": "TE",
+  "region": "前腕背側",
+  "location": "手関節背横紋の上2寸、橈尺骨間の溝中。",
+  "location_simple": "手首の甲のしわから肘方向へ指3本、2本の骨のあいだのくぼみ。",
+  "effects": [
+    "肩こり",
+    "首こり",
+    "頭痛",
+    "手のしびれ",
+    "風邪の初期"
+  ],
+  "depth": "0.5–1.0寸",
+  "source": "Pocket361",
+  "illustration": "tutorial/tutorial/te5_gaikan_demo.png"
+}
   "LI4": {
     "name_ja": "合谷（ゴウコク）",
     "name_en": "Hegu",
