@@ -80,21 +80,25 @@
     </section>
   </div>
 
-  <template id="card">
-    <div class="border rounded-xl p-3 hover:bg-slate-50">
-      <div class="text-sm font-semibold flex items-center justify-between">
-        <span class="name"></span>
-        <span class="badge mer"></span>
-      </div>
-      <div class="text-xs text-slate-500 en"></div>
-      <div class="text-xs text-slate-500 region"></div>
-      <div class="text-sm loc mt-1"></div>
-      <div class="effects-row" data-role="effects"></div>
-      <div class="text-xs text-slate-500 depth mt-1"></div>
-      <div class="text-xs text-slate-400 src mt-1"></div>
+<template id="card">
+  <div class="border rounded-xl p-3 hover:bg-slate-50">
+    <div class="text-sm font-semibold flex items-center justify-between">
+      <span class="name"></span>
+      <span class="badge mer"></span>
     </div>
-  </template>
+    <div class="text-xs text-slate-500 en"></div>
+    <div class="text-xs text-slate-500 region"></div>
+    <div class="text-sm loc mt-1"></div>
+    <div class="effects-row" data-role="effects"></div>
 
+    <!-- ▼ 取穴イラスト（あれば表示） -->
+    <div class="illus my-2"></div>
+
+    <div class="text-xs text-slate-500 depth mt-1"></div>
+    <div class="text-xs text-slate-400 src mt-1"></div>
+  </div>
+</template>
+  
   <script>
     const els = {
       side: document.getElementById('side'),
