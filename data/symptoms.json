@@ -1,0 +1,188 @@
+[
+  {
+    "id": "headache",
+    "label": "頭痛・片頭痛",
+    "point_ids": [
+      "GB20",
+      "TE5",
+      "LI4",
+      "GV20",
+      "LR3",
+      "GV16"
+    ]
+  },
+  {
+    "id": "eye_fatigue",
+    "label": "眼精疲労",
+    "point_ids": [
+      "BL2",
+      "GB20",
+      "LI4",
+      "LR3"
+    ]
+  },
+  {
+    "id": "nasal",
+    "label": "鼻づまり・花粉症",
+    "point_ids": [
+      "LI20",
+      "LI4",
+      "GB20"
+    ]
+  },
+  {
+    "id": "throat",
+    "label": "咽喉痛・風邪",
+    "point_ids": [
+      "LI4",
+      "GV20",
+      "GB20"
+    ]
+  },
+  {
+    "id": "stiff_shoulder",
+    "label": "肩こり",
+    "point_ids": [
+      "GB21",
+      "LI4",
+      "TE5"
+    ]
+  },
+  {
+    "id": "lumbago",
+    "label": "腰痛",
+    "point_ids": [
+      "BL23",
+      "BL25",
+      "GV3",
+      "GB20"
+    ]
+  },
+  {
+    "id": "knee_pain",
+    "label": "膝痛・脚のこわばり",
+    "point_ids": [
+      "ST36",
+      "SP10",
+      "GB34"
+    ]
+  },
+  {
+    "id": "indigestion",
+    "label": "胃もたれ・消化不良",
+    "point_ids": [
+      "CV12",
+      "ST36",
+      "PC6"
+    ]
+  },
+  {
+    "id": "constipation",
+    "label": "便秘",
+    "point_ids": [
+      "ST25",
+      "BL25",
+      "LI4"
+    ]
+  },
+  {
+    "id": "diarrhea",
+    "label": "下痢",
+    "point_ids": [
+      "ST36",
+      "CV6",
+      "SP9"
+    ]
+  },
+  {
+    "id": "coldness",
+    "label": "冷え性",
+    "point_ids": [
+      "SP6",
+      "ST36",
+      "CV6"
+    ]
+  },
+  {
+    "id": "edema",
+    "label": "むくみ",
+    "point_ids": [
+      "SP9",
+      "ST36",
+      "KI3"
+    ]
+  },
+  {
+    "id": "insomnia",
+    "label": "不眠",
+    "point_ids": [
+      "HT7",
+      "PC6",
+      "GV20",
+      "SP6"
+    ]
+  },
+  {
+    "id": "stress",
+    "label": "ストレス・イライラ",
+    "point_ids": [
+      "LR3",
+      "PC6",
+      "GV20"
+    ]
+  },
+  {
+    "id": "dysmenorrhea",
+    "label": "月経痛・PMS",
+    "point_ids": [
+      "SP6",
+      "CV4",
+      "LR3"
+    ]
+  },
+  {
+    "id": "menopause",
+    "label": "更年期症状",
+    "point_ids": [
+      "SP6",
+      "KI3",
+      "GV20"
+    ]
+  },
+  {
+    "id": "urination",
+    "label": "頻尿・尿トラブル",
+    "point_ids": [
+      "CV4",
+      "CV6",
+      "BL23"
+    ]
+  },
+  {
+    "id": "frozen_shoulder",
+    "label": "肩関節痛（五十肩）",
+    "point_ids": [
+      "LI15",
+      "TE14",
+      "LI11"
+    ]
+  },
+  {
+    "id": "hand_numbness",
+    "label": "手のしびれ",
+    "point_ids": [
+      "PC7",
+      "LI4",
+      "TE5"
+    ]
+  },
+  {
+    "id": "neck_stiff",
+    "label": "寝違え・首のこり",
+    "point_ids": [
+      "GB20",
+      "SI14",
+      "TE5"
+    ]
+  }
+]

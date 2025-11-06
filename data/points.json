@@ -1,0 +1,263 @@
+{
+  "GB20": {
+    "name_ja": "風池（フウチ）",
+    "name_en": "Fengchi",
+    "meridian": "GB",
+    "region": "後頸部",
+    "location": "乳様突起と僧帽筋外縁の間の陥凹、後頭骨下縁。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "TE5": {
+    "name_ja": "外関（ガイカン）",
+    "name_en": "Waiguan",
+    "meridian": "TE",
+    "region": "前腕背側",
+    "location": "手関節背横紋の上2寸、橈尺骨間の溝中。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "LI4": {
+    "name_ja": "合谷（ゴウコク）",
+    "name_en": "Hegu",
+    "meridian": "LI",
+    "region": "手背",
+    "location": "第1・2中手骨間のくぼみ。",
+    "depth": "0.5–1.0寸（妊婦注意）",
+    "source": "Pocket361"
+  },
+  "GV20": {
+    "name_ja": "百会（ヒャクエ）",
+    "name_en": "Baihui",
+    "meridian": "GV",
+    "region": "頭頂部",
+    "location": "両耳尖を結ぶ線の正中上の陥凹。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "LR3": {
+    "name_ja": "太衝（タイショウ）",
+    "name_en": "Taichong",
+    "meridian": "LR",
+    "region": "足背",
+    "location": "第1・2中足骨間後方の陥凹。",
+    "depth": "0.3–0.8寸",
+    "source": "Pocket361"
+  },
+  "GV16": {
+    "name_ja": "風府（フウフ）",
+    "name_en": "Fengfu",
+    "meridian": "GV",
+    "region": "後頭部",
+    "location": "外後頭隆起直下の陥凹。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "GB21": {
+    "name_ja": "肩井（ケンセイ）",
+    "name_en": "Jianjing",
+    "meridian": "GB",
+    "region": "肩上部",
+    "location": "C7棘突起と肩峰端の中点。",
+    "depth": "0.5–0.8寸",
+    "source": "Pocket361"
+  },
+  "ST36": {
+    "name_ja": "足三里（アシサンリ）",
+    "name_en": "Zusanli",
+    "meridian": "ST",
+    "region": "下腿前外側",
+    "location": "犢鼻より下3寸、脛骨前稜外方一横指。",
+    "depth": "0.8–1.5寸",
+    "source": "Pocket361"
+  },
+  "SP10": {
+    "name_ja": "血海（ケッカイ）",
+    "name_en": "Xuehai",
+    "meridian": "SP",
+    "region": "大腿内側",
+    "location": "膝蓋骨内上角から上2寸。",
+    "depth": "0.8–1.2寸",
+    "source": "Pocket361"
+  },
+  "GB34": {
+    "name_ja": "陽陵泉（ヨウリョウセン）",
+    "name_en": "Yanglingquan",
+    "meridian": "GB",
+    "region": "腓骨頭前下の陥凹",
+    "location": "腓骨小頭前下の陥凹。",
+    "depth": "0.8–1.2寸",
+    "source": "Pocket361"
+  },
+  "CV12": {
+    "name_ja": "中脘（チュウカン）",
+    "name_en": "Zhongwan",
+    "meridian": "CV",
+    "region": "上腹部",
+    "location": "臍上4寸の正中。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "PC6": {
+    "name_ja": "内関（ナイカン）",
+    "name_en": "Neiguan",
+    "meridian": "PC",
+    "region": "前腕掌側",
+    "location": "手関節掌側横紋の上2寸、2腱の間。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "ST25": {
+    "name_ja": "天枢（テンスウ）",
+    "name_en": "Tianshu",
+    "meridian": "ST",
+    "region": "腹部",
+    "location": "臍の左右2寸。",
+    "depth": "0.8–1.2寸",
+    "source": "Pocket361"
+  },
+  "BL25": {
+    "name_ja": "大腸兪（ダイチョウユ）",
+    "name_en": "Dachangshu",
+    "meridian": "BL",
+    "region": "腰部",
+    "location": "第4腰椎棘突起下縁外方1.5寸。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "SP9": {
+    "name_ja": "陰陵泉（インリョウセン）",
+    "name_en": "Yinlingquan",
+    "meridian": "SP",
+    "region": "下腿内側",
+    "location": "脛骨内側顆下の陥凹。",
+    "depth": "0.5–1.2寸",
+    "source": "Pocket361"
+  },
+  "CV6": {
+    "name_ja": "気海（キカイ）",
+    "name_en": "Qihai",
+    "meridian": "CV",
+    "region": "下腹部",
+    "location": "臍下1.5寸。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "SP6": {
+    "name_ja": "三陰交（サンインコウ）",
+    "name_en": "Sanyinjiao",
+    "meridian": "SP",
+    "region": "下腿内側",
+    "location": "内果尖より上3寸、脛骨後縁。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "KI3": {
+    "name_ja": "太谿（タイケイ）",
+    "name_en": "Taixi",
+    "meridian": "KI",
+    "region": "足関節内側",
+    "location": "内果尖とアキレス腱の間の陥凹。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "HT7": {
+    "name_ja": "神門（シンモン）",
+    "name_en": "Shenmen",
+    "meridian": "HT",
+    "region": "手関節部",
+    "location": "手関節横紋の尺側端、豆状骨前のくぼみ。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "CV4": {
+    "name_ja": "関元（カンゲン）",
+    "name_en": "Guanyuan",
+    "meridian": "CV",
+    "region": "下腹部",
+    "location": "臍下3寸。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "LI15": {
+    "name_ja": "肩髃（ケングウ）",
+    "name_en": "Jianyu",
+    "meridian": "LI",
+    "region": "肩関節部",
+    "location": "肩峰前外側の陥凹。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "TE14": {
+    "name_ja": "肩髎（ケンリョウ）",
+    "name_en": "Jianliao",
+    "meridian": "TE",
+    "region": "肩関節部",
+    "location": "肩峰後外側の陥凹。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "LI11": {
+    "name_ja": "曲池（キョクチ）",
+    "name_en": "Quchi",
+    "meridian": "LI",
+    "region": "肘部",
+    "location": "肘窩横紋外端。",
+    "depth": "0.5–1.5寸",
+    "source": "Pocket361"
+  },
+  "PC7": {
+    "name_ja": "大陵（ダイリョウ）",
+    "name_en": "Daling",
+    "meridian": "PC",
+    "region": "手関節掌側",
+    "location": "手関節掌側横紋の中央。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "SI14": {
+    "name_ja": "肩外兪（ケンガイユ）",
+    "name_en": "Jianwaishu",
+    "meridian": "SI",
+    "region": "背上部",
+    "location": "第1胸椎棘突起下縁外方3寸。",
+    "depth": "0.5–0.8寸",
+    "source": "Pocket361"
+  },
+  "LI20": {
+    "name_ja": "迎香（ゲイコウ）",
+    "name_en": "Yingxiang",
+    "meridian": "LI",
+    "region": "鼻翼外側",
+    "location": "鼻翼外縁の中点。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "BL2": {
+    "name_ja": "攅竹（サンチク）",
+    "name_en": "Cuanzhu",
+    "meridian": "BL",
+    "region": "眉頭",
+    "location": "眉頭内側端のくぼみ。",
+    "depth": "0.3–0.5寸",
+    "source": "Pocket361"
+  },
+  "GV3": {
+    "name_ja": "腰陽関（ヨウヨウカン）",
+    "name_en": "Yaoyangguan",
+    "meridian": "GV",
+    "region": "腰部",
+    "location": "第4腰椎棘突起間。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  },
+  "BL23": {
+    "name_ja": "腎兪（ジンユ）",
+    "name_en": "Shenshu",
+    "meridian": "BL",
+    "region": "腰部",
+    "location": "第2腰椎棘突起下縁外方1.5寸。",
+    "depth": "0.5–1.0寸",
+    "source": "Pocket361"
+  }
+}
