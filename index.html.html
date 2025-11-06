@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ツボマップ v1（前面・後面｜初心者/全穴）</title>
+  <meta name="description" content="症状を選ぶと推奨ツボが表示されます。前面/後面対応。表示は『初心者（厳選3–6穴）／全穴』を切り替え可能。" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glow { filter: drop-shadow(0 0 6px rgba(59,130,246,.85)); }
+    .pin { cursor: pointer; }
+    .label { font-size: 10px; fill: #0f172a; paint-order: stroke; stroke: #fff; stroke-width: 3; }
+    .badge { border:1px solid rgb(226 232 240); border-radius:9999px; padding:.1rem .5rem; font-size:.75rem; }
+    .btn { border:1px solid rgb(226 232 240); border-radius:.75rem; padding:.5rem .75rem; font-size:.875rem }
+    .btn:hover{ background:#f8fafc }
+    .dot { r: 1.6; }
+    @media (min-width: 768px) { .dot { r: 1.2; } }
+    .hit { pointer-events: all; fill: transparent; }
+    .effects-row { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.25rem; }
+    .effect { border:1px solid rgb(226 232 240); border-radius:9999px; padding:.1rem .5rem; font-size:.75rem; background:#fff; display:inline-flex; align-items:center; gap:.25rem; }
+    .effect::before { content:'○'; font-weight:700; line-height:1; }
+  </style>
+</head>
+<body class="min-h-screen bg-white text-slate-900">
+  <div class="mx-auto max-w-6xl p-4 md:p-8">
+    <header class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-semibold">ツボマップ v1（前面・後面）</h1>
+        <p class="text-sm text-slate-600">症状をプルダウンで選ぶ → 推奨ツボが表示されます。<span class="badge">初心者（厳選）</span>／<span class="badge">全穴</span> 切替可。</p>
+      </div>
+      <div class="flex items-center gap-2 text-sm">
+        <label class="flex items-center gap-2">
+          表示面
+          <select id="side" class="border rounded-lg px-2 py-1">
+            <option value="front">前面</option>
+            <option value="back">後面</option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2">
+          表示モード
+          <select id="mode" class="border rounded-lg px-2 py-1">
+            <option value="basic">初心者（厳選）</option>
+            <option value="all">全穴（収録のみ）</option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2">
+          経脈
+          <select id="meridian" class="border rounded-lg px-2 py-1">
+            <option value="">すべて</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-3">
+        <div>
+          <label class="text-sm text-slate-600">症状を選択</label>
+          <select id="symptom" class="w-full border rounded-xl px-3 py-2 mt-1 text-sm"></select>
+        </div>
+        <div>
+          <label class="text-sm text-slate-600">検索（名称/英名/部位）</label>
+          <input id="search" type="text" class="w-full border rounded-xl px-3 py-2 mt-1 text-sm" placeholder="例：合谷 / Hegu / 手背" />
+        </div>
+        <div id="list" class="grid grid-cols-1 gap-3"></div>
+      </div>
+
+      <div class="bg-slate-50 border rounded-2xl p-3">
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold">人体シルエット（<span id="sideLabel">前面</span>）</div>
+          <div class="text-xs text-slate-500">ラベルは常時表示（漢字＋カナ）／点タップで詳細</div>
+        </div>
+        <div class="mt-2">
+          <svg id="figure" viewBox="0 0 100 230" class="w-full h-[560px] bg-white border rounded-xl">
+            <g id="silhouette"></g>
+            <g id="pins"></g>
+          </svg>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <template id="card">
+    <div class="border rounded-xl p-3 hover:bg-slate-50">
+      <div class="text-sm font-semibold flex items-center justify-between">
+        <span class="name"></span>
+        <span class="badge mer"></span>
+      </div>
+      <div class="text-xs text-slate-500 en"></div>
+      <div class="text-xs text-slate-500 region"></div>
+      <div class="text-sm loc mt-1"></div>
+      <div class="effects-row" data-role="effects"></div>
+      <div class="text-xs text-slate-500 depth mt-1"></div>
+      <div class="text-xs text-slate-400 src mt-1"></div>
+    </div>
+  </template>
+
+  <script>
+    const els = {
+      side: document.getElementById('side'),
+      mode: document.getElementById('mode'),
+      meridian: document.getElementById('meridian'),
+      symptom: document.getElementById('symptom'),
+      search: document.getElementById('search'),
+      list: document.getElementById('list'),
+      silhouette: document.getElementById('silhouette'),
+      pins: document.getElementById('pins'),
+      sideLabel: document.getElementById('sideLabel'),
+      cardTpl: document.getElementById('card')
+    };
+
+    let DB = { points:{}, symptoms:[], coords:{front:{},back:{}} };
+
+    async function loadAll(){
+      const [points, symptoms, coords] = await Promise.all([
+        fetch('./data/points.json').then(r=>r.json()),
+        fetch('./data/symptoms.json').then(r=>r.json()),
+        fetch('./data/coords.json').then(r=>r.json())
+      ]);
+      DB.points = points; DB.symptoms = symptoms; DB.coords = coords;
+
+      const mers = new Set(Object.values(points).map(p=>p.meridian).filter(Boolean));
+      [...mers].sort().forEach(m=>{
+        const o=document.createElement('option'); o.value=m; o.textContent=m; els.meridian.appendChild(o);
+      });
+
+      els.symptom.innerHTML = '';
+      symptoms.forEach((s)=>{
+        const o=document.createElement('option'); o.value=s.id; o.textContent=s.label; els.symptom.appendChild(o);
+      });
+      els.symptom.value = symptoms[0]?.id || '';
+
+      render();
+    }
+
+    function useSilhouette(){
+      const side = els.side.value;
+      els.sideLabel.textContent = side==='front' ? '前面' : '後面';
+      els.silhouette.innerHTML = '';
+      fetch(`./assets/${side}.svg`).then(r=>r.text()).then(svg=>{
+        const inner = svg.replace(/^[\s\S]*?<svg[^>]*>/i,'').replace(/<\/svg>[\s\S]*$/i,'');
+        els.silhouette.innerHTML = inner;
+      });
+    }
+
+    function filterIds(){
+      const side = els.side.value;
+      const q = (els.search.value||'').toLowerCase().trim();
+      const mer = els.meridian.value;
+      const mode = els.mode.value;
+      let ids = [];
+
+      if(mode==='basic'){
+        const sym = DB.symptoms.find(s=>s.id===els.symptom.value) || DB.symptoms[0];
+        ids = sym ? sym.point_ids.slice() : [];
+      } else {
+        ids = Object.keys(DB.coords[side]||{});
+      }
+
+      if(mer) ids = ids.filter(id => (DB.points[id]?.meridian||'')===mer);
+      if(q){
+        ids = ids.filter(id => {
+          const p = DB.points[id] || {};
+          return (id.toLowerCase().includes(q)
+            || (p.name_ja||'').includes(q)
+            || (p.name_en||'').toLowerCase().includes(q)
+            || (p.region||'').toLowerCase().includes(q));
+        });
+      }
+      ids = ids.filter(id => !!(DB.coords[side]||{})[id]);
+      return ids;
+    }
+
+    function cardNode(id){
+      const p = DB.points[id]; if(!p) return null;
+      const c = els.cardTpl.content.cloneNode(true);
+
+      c.querySelector('.name').textContent = p.name_ja || id;
+      c.querySelector('.mer').textContent = p.meridian || '';
+      c.querySelector('.en').textContent = p.name_en ? p.name_en : '';
+      c.querySelector('.region').textContent = p.region ? `部位：${p.region}` : '';
+
+      const nice = (p.location_simple && p.location_simple.trim()) ? p.location_simple : (p.location || '');
+      c.querySelector('.loc').textContent = nice;
+
+      const fxWrap = c.querySelector('[data-role="effects"]');
+      if (Array.isArray(p.effects) && p.effects.length){
+        p.effects.forEach(tag=>{
+          const span = document.createElement('span');
+          span.className = 'effect';
+          span.textContent = tag;
+          fxWrap.appendChild(span);
+        });
+      }
+
+      c.querySelector('.depth').textContent = p.depth ? `深さ：${p.depth}` : '';
+      c.querySelector('.src').textContent = p.source ? `出典：${p.source}` : '';
+
+      const node = c.firstElementChild;
+      node.dataset.id = id;
+      node.addEventListener('mouseenter', ()=> highlightPin(id,true));
+      node.addEventListener('mouseleave', ()=> highlightPin(id,false));
+      return node;
+    }
+
+    function renderList(ids){
+      els.list.innerHTML = '';
+      ids.forEach(id=>{
+        const node = cardNode(id);
+        if(node) els.list.appendChild(node);
+      });
+    }
+
+    function renderPins(ids){
+      const side = els.side.value;
+      els.pins.innerHTML = '';
+      ids.forEach(id=>{
+        const c = (DB.coords[side]||{})[id];
+        const p = DB.points[id];
+        if(!c || !p) return;
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.classList.add('pin'); g.dataset.id = id;
+        const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('cx', c.x); dot.setAttribute('cy', c.y);
+        dot.setAttribute('class','dot'); dot.setAttribute('fill','#ef4444');
+        const hit = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        hit.setAttribute('cx', c.x); hit.setAttribute('cy', c.y);
+        hit.setAttribute('r', 3.6); hit.setAttribute('class','hit');
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x', c.x + 1.8); txt.setAttribute('y', c.y - 0.8);
+        txt.setAttribute('class','label'); txt.textContent = p.name_ja || id;
+        g.appendChild(dot); g.appendChild(hit); g.appendChild(txt);
+        const on = ()=> selectCard(id);
+        hit.addEventListener('click', on); dot.addEventListener('click', on); txt.addEventListener('click', on);
+        els.pins.appendChild(g);
+      });
+    }
+
+    function highlightPin(id,on){
+      const g = [...document.querySelectorAll('g.pin')].find(n=>n.dataset.id===id);
+      if(!g) return;
+      const dot = g.querySelector('circle.dot') || g.querySelector('circle');
+      if(on){ dot.classList.add('glow'); } else { dot.classList.remove('glow'); }
+    }
+
+    function selectCard(id){
+      const card = [...els.list.children].find(n=>n.dataset.id===id);
+      if(card){
+        card.scrollIntoView({behavior:'smooth', block:'center'});
+        card.classList.add('bg-slate-100');
+        setTimeout(()=>card.classList.remove('bg-slate-100'), 800);
+      }
+    }
+
+    function render(){
+      useSilhouette();
+      const ids = filterIds();
+      renderList(ids);
+      renderPins(ids);
+    }
+
+    ['change','input'].forEach(ev=>{
+      els.side.addEventListener(ev, render);
+      els.mode.addEventListener(ev, render);
+      els.meridian.addEventListener(ev, render);
+      els.symptom.addEventListener(ev, render);
+      els.search.addEventListener(ev, render);
+    });
+
+    loadAll();
+  </script>
+</body>
+</html>
