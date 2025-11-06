@@ -10,13 +10,15 @@
     .glow { filter: drop-shadow(0 0 6px rgba(59,130,246,.85)); }
     .pin { cursor: pointer; }
     .label { font-size: 10px; fill: #0f172a; paint-order: stroke; stroke: #fff; stroke-width: 3; }
-    .label-bg { fill: rgba(255,255,255,.85); stroke: #cbd5e1; stroke-width: .5; }
     .badge { border:1px solid rgb(226 232 240); border-radius:9999px; padding:.1rem .5rem; font-size:.75rem; }
     .btn { border:1px solid rgb(226 232 240); border-radius:.75rem; padding:.5rem .75rem; font-size:.875rem }
     .btn:hover{ background:#f8fafc }
     .dot { r: 1.6; }
     @media (min-width: 768px) { .dot { r: 1.2; } }
     .hit { pointer-events: all; fill: transparent; }
+    .effects-row { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.25rem; }
+    .effect { border:1px solid rgb(226 232 240); border-radius:9999px; padding:.1rem .5rem; font-size:.75rem; background:#fff; display:inline-flex; align-items:center; gap:.25rem; }
+    .effect::before { content:'○'; font-weight:700; line-height:1; }
   </style>
 </head>
 <body class="min-h-screen bg-white text-slate-900">
@@ -87,6 +89,7 @@
       <div class="text-xs text-slate-500 en"></div>
       <div class="text-xs text-slate-500 region"></div>
       <div class="text-sm loc mt-1"></div>
+      <div class="effects-row" data-role="effects"></div>
       <div class="text-xs text-slate-500 depth mt-1"></div>
       <div class="text-xs text-slate-400 src mt-1"></div>
     </div>
@@ -164,7 +167,6 @@
             || (p.region||'').toLowerCase().includes(q));
         });
       }
-      // keep only ids that have coords on current side
       ids = ids.filter(id => !!(DB.coords[side]||{})[id]);
       return ids;
     }
@@ -172,13 +174,28 @@
     function cardNode(id){
       const p = DB.points[id]; if(!p) return null;
       const c = els.cardTpl.content.cloneNode(true);
+
       c.querySelector('.name').textContent = p.name_ja || id;
       c.querySelector('.mer').textContent = p.meridian || '';
       c.querySelector('.en').textContent = p.name_en ? p.name_en : '';
       c.querySelector('.region').textContent = p.region ? `部位：${p.region}` : '';
-      c.querySelector('.loc').textContent = p.location ? p.location : '';
+
+      const nice = (p.location_simple && p.location_simple.trim()) ? p.location_simple : (p.location || '');
+      c.querySelector('.loc').textContent = nice;
+
+      const fxWrap = c.querySelector('[data-role="effects"]');
+      if (Array.isArray(p.effects) && p.effects.length){
+        p.effects.forEach(tag=>{
+          const span = document.createElement('span');
+          span.className = 'effect';
+          span.textContent = tag;
+          fxWrap.appendChild(span);
+        });
+      }
+
       c.querySelector('.depth').textContent = p.depth ? `深さ：${p.depth}` : '';
       c.querySelector('.src').textContent = p.source ? `出典：${p.source}` : '';
+
       const node = c.firstElementChild;
       node.dataset.id = id;
       node.addEventListener('mouseenter', ()=> highlightPin(id,true));
@@ -220,7 +237,7 @@
     }
 
     function highlightPin(id,on){
-      const g = [...els.pins.querySelectorAll('g.pin')].find(n=>n.dataset.id===id);
+      const g = [...document.querySelectorAll('g.pin')].find(n=>n.dataset.id===id);
       if(!g) return;
       const dot = g.querySelector('circle.dot') || g.querySelector('circle');
       if(on){ dot.classList.add('glow'); } else { dot.classList.remove('glow'); }
