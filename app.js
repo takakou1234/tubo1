@@ -20,8 +20,10 @@ let coordsDB = { front: {}, back: {} };
 
 let coordBlinkTimeout = 0;
 let viewer = null;
+let lastActiveIds = [];
 
 // 手動対応表: card ID -> GLBノード名（PT_付き）
+// 候補が複数あるものは配列で登録（見つかったものを使用）
 const nodeNameMap = {
   // LI
   LI1: "PT_LI1",
@@ -85,8 +87,8 @@ const nodeNameMap = {
   PC6: "PT_PC6",
   HT7: "PT_HT7",
   SP6: "PT_SP6",
-  LV3: "PT_LV3",
-  LR3: "PT_LV3", // 別表記
+  LV3: ["PT_LV3", "PT_LR3"],
+  LR3: ["PT_LV3", "PT_LR3"], // 別表記
   GB20: "PT_GB20",
   GB21: "PT_GB21",
   BL40: "PT_BL40",
@@ -94,6 +96,13 @@ const nodeNameMap = {
   GV20: "PT_DU20", // 同義
   DU20: "PT_DU20",
   CV12: "PT_CV12",
+  // 外関（Gaikan / Waiguan）
+  TE5: ["PT_TE5", "PT_TB5", "PT_SJ5"],
+  SJ5: ["PT_SJ5", "PT_TE5", "PT_TB5"],
+  TB5: ["PT_TB5", "PT_TE5", "PT_SJ5"],
+  // 風府
+  GV16: ["PT_GV16", "PT_DU16"],
+  DU16: ["PT_DU16", "PT_GV16"],
 };
 
 async function loadAll() {
@@ -231,7 +240,9 @@ function blinkCoord(id) {
 
 function render() {
   const ids = filterIds();
+  lastActiveIds = ids;
   renderList(ids);
+  if (viewer?.setActivePoints) viewer.setActivePoints(ids);
 }
 
 ["change", "input"].forEach((ev) => {
@@ -286,6 +297,9 @@ function startThreeViewer({ containerEl, modelUrl }) {
   let highlightInterval = 0;
   const pointNodeIndex = new Map(); // key -> Object3D (aliases registered during traverse)
   const tmpV = new THREE.Vector3();
+  const idleMarkers = new Map(); // id -> Mesh (soft glow)
+  let passiveGeo = null;
+  let passiveMat = null;
 
   const setHighlightVisible = (on) => {
     if (!highlightMesh) return;
@@ -306,7 +320,7 @@ function startThreeViewer({ containerEl, modelUrl }) {
 
     const ptName = (() => {
       const mapped = nodeNameMap[id.toUpperCase()];
-      if (mapped) return mapped;
+      if (mapped) return Array.isArray(mapped) ? mapped[0] : mapped;
       const m = String(id).toUpperCase().match(/^([A-Z]+)(\d+)$/);
       if (!m) return null;
       const [, prefix, num] = m;
@@ -317,43 +331,52 @@ function startThreeViewer({ containerEl, modelUrl }) {
     const aliases = (() => {
       const raw = String(id).toUpperCase();
       const m = raw.match(/^([A-Z]+)(\d+)$/);
-      if (!m) return [raw];
+      if (!m) {
+        const mapped = nodeNameMap[raw];
+        return Array.isArray(mapped) ? mapped : [mapped, raw].filter(Boolean);
+      }
       const [, prefix, num] = m;
       const padded = num.padStart(2, "0");
+      const numInt = Number(num).toString(); // leading zeroを削除した数値表記
       const mapped = nodeNameMap[raw];
+      const mappedList = Array.isArray(mapped) ? mapped : [mapped].filter(Boolean);
       return [
-        mapped,
+        ...mappedList,
         ptName,
         `PT_${prefix}${num}`, // 非ゼロパディング
         `PT_${prefix}${padded}`,
+        `PT_${prefix}${numInt}`,
         raw,
         `${prefix}${num}`,
         `${prefix}${padded}`,
+        `${prefix}${numInt}`,
       ].filter(Boolean);
     })();
 
-    let targetPos = null;
-    let matched = aliases.find((a) => a && pointNodeIndex.has(a));
-    if (matched) {
-      const obj = pointNodeIndex.get(matched);
-      obj.getWorldPosition(tmpV);
-      group.worldToLocal(tmpV);
-      targetPos = tmpV.clone();
-      setThreeStatus(`highlight: ${matched}`);
-    } else if (coord) {
-      const xNorm = (coord?.x ?? 0) / 100;
-      const yNorm = (coord?.y ?? 0) / 230;
-      const x = THREE.MathUtils.lerp(modelBounds.min.x, modelBounds.max.x, xNorm);
-      const y = THREE.MathUtils.lerp(modelBounds.max.y, modelBounds.min.y, yNorm);
-      const zPad = (modelBounds.max.z - modelBounds.min.z) * 0.03 || 0.02;
-      const z = side === "back" ? modelBounds.min.z - zPad : modelBounds.max.z + zPad;
-      targetPos = new THREE.Vector3(x, y, z);
-      setThreeStatus(`highlight (fallback 2D): ${id}`);
-    } else {
+    const targetPos = (() => {
+      const matched = aliases.find((a) => a && pointNodeIndex.has(a));
+      if (matched) {
+        const obj = pointNodeIndex.get(matched);
+        obj.getWorldPosition(tmpV);
+        group.worldToLocal(tmpV);
+        setThreeStatus(`highlight: ${matched}`);
+        return tmpV.clone();
+      }
+      if (coord) {
+        const xNorm = (coord?.x ?? 0) / 100;
+        const yNorm = (coord?.y ?? 0) / 230;
+        const x = THREE.MathUtils.lerp(modelBounds.min.x, modelBounds.max.x, xNorm);
+        const y = THREE.MathUtils.lerp(modelBounds.max.y, modelBounds.min.y, yNorm);
+        const zPad = (modelBounds.max.z - modelBounds.min.z) * 0.03 || 0.02;
+        const z = side === "back" ? modelBounds.min.z - zPad : modelBounds.max.z + zPad;
+        setThreeStatus(`highlight (fallback 2D): ${id}`);
+        return new THREE.Vector3(x, y, z);
+      }
       setThreeStatus(`ノード/座標なし: ${id}`);
-      return;
-    }
+      return null;
+    })();
 
+    if (!targetPos) return;
     highlightMesh.position.copy(targetPos);
 
     clearHighlight();
@@ -363,6 +386,84 @@ function startThreeViewer({ containerEl, modelUrl }) {
       on = !on;
       setHighlightVisible(on);
     }, 180);
+  };
+
+  const getPointPosition = (id, coord, side) => {
+    if (!modelBounds) return null;
+    const raw = String(id).toUpperCase();
+    const m = raw.match(/^([A-Z]+)(\d+)$/);
+    const padded = m ? m[2].padStart(2, "0") : null;
+    const numInt = m ? Number(m[2]).toString() : null;
+    const mapped = nodeNameMap[raw];
+    const mappedList = Array.isArray(mapped) ? mapped : [mapped].filter(Boolean);
+    const aliases = [
+      ...mappedList,
+      m ? `PT_${m[1]}${m[2]}` : null,
+      m ? `PT_${m[1]}${padded}` : null,
+      m ? `PT_${m[1]}${numInt}` : null,
+      raw,
+      m ? `${m[1]}${m[2]}` : null,
+      m ? `${m[1]}${padded}` : null,
+      m ? `${m[1]}${numInt}` : null,
+    ].filter(Boolean);
+
+    const matched = aliases.find((a) => pointNodeIndex.has(a));
+    if (matched) {
+      const obj = pointNodeIndex.get(matched);
+      obj.getWorldPosition(tmpV);
+      group.worldToLocal(tmpV);
+      return tmpV.clone();
+    }
+
+    if (coord) {
+      const xNorm = (coord?.x ?? 0) / 100;
+      const yNorm = (coord?.y ?? 0) / 230;
+      const x = THREE.MathUtils.lerp(modelBounds.min.x, modelBounds.max.x, xNorm);
+      const y = THREE.MathUtils.lerp(modelBounds.max.y, modelBounds.min.y, yNorm);
+      const zPad = (modelBounds.max.z - modelBounds.min.z) * 0.03 || 0.02;
+      const z = side === "back" ? modelBounds.min.z - zPad : modelBounds.max.z + zPad;
+      return new THREE.Vector3(x, y, z);
+    }
+    return null;
+  };
+
+  const setActivePoints = (ids) => {
+    if (!modelBounds || !highlightMesh) return;
+    if (!passiveGeo || !passiveMat) {
+      const r = Math.max(modelBounds.max.x - modelBounds.min.x, 1) * 0.006;
+      passiveGeo = new THREE.SphereGeometry(r, 12, 10);
+      passiveMat = new THREE.MeshStandardMaterial({
+        color: 0xfef08a,
+        emissive: 0xfacc15,
+        emissiveIntensity: 0.6,
+        transparent: true,
+        opacity: 0.7,
+      });
+    }
+
+    const next = new Set(ids || []);
+    // 更新・生成
+    next.forEach((id) => {
+      const upper = String(id).toUpperCase();
+      const cFront = coordsDB?.front?.[upper] ?? coordsDB?.front?.[id] ?? null;
+      const cBack = coordsDB?.back?.[upper] ?? coordsDB?.back?.[id] ?? null;
+      const pos = getPointPosition(id, cFront ?? cBack, cFront ? "front" : cBack ? "back" : null);
+      if (!pos) return;
+      let mesh = idleMarkers.get(id);
+      if (!mesh) {
+        mesh = new THREE.Mesh(passiveGeo, passiveMat);
+        mesh.visible = true;
+        idleMarkers.set(id, mesh);
+        group.add(mesh);
+      }
+      mesh.position.copy(pos);
+      mesh.visible = true;
+    });
+
+    // 非表示にする
+    idleMarkers.forEach((mesh, id) => {
+      if (!next.has(id)) mesh.visible = false;
+    });
   };
 
   const onGltfLoaded = (gltf) => {
@@ -423,7 +524,10 @@ function startThreeViewer({ containerEl, modelUrl }) {
       } else {
         setThreeStatus("loaded");
       }
-  };
+
+      // モデル読み込み後に、現在の絞り込みリストを再反映
+      setActivePoints(lastActiveIds);
+    };
 
   const onGltfError = (err) => {
     console.error(err);
@@ -470,7 +574,7 @@ function startThreeViewer({ containerEl, modelUrl }) {
 
       const basePath = new URL("./", modelUrl).toString();
       setThreeStatus("parsing...");
-      loader.parse(ab, basePath, onGltfLoaded, onGltfError);
+  loader.parse(ab, basePath, onGltfLoaded, onGltfError);
     } catch (e) {
       onGltfError(e);
     }
@@ -502,6 +606,10 @@ function startThreeViewer({ containerEl, modelUrl }) {
   return {
     highlightPoint,
     clearHighlight,
+    setActivePoints,
+    notifyModelReady() {
+      setActivePoints(lastActiveIds);
+    },
     dispose() {
       clearHighlight();
       window.cancelAnimationFrame(raf);
