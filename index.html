@@ -28,7 +28,7 @@
   <div class="mx-auto max-w-6xl p-4 md:p-8">
     <header class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">ツボマップ</h1>
+        <h1 class="text-2xl md:text-3xl font-semibold">ツボマップ v1（前面・後面）</h1>
         <p class="text-sm text-slate-600">症状をプルダウンで選ぶ → 推奨ツボが表示されます。<span class="badge">初心者（厳選）</span>／<span class="badge">全穴</span> 切替可。</p>
       </div>
       <div class="flex items-center gap-2 text-sm">
@@ -52,11 +52,12 @@
       <div class="space-y-3">
         <div>
           <label class="text-sm text-slate-600">症状を選択</label>
-          <select id="symptom" class="w-full rounded-xl px-3 py-2 mt-1 text-sm bg-yellow-50 border border-yellow-300 text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-300">
-            <!-- option 要素は app.js 等で挿入されます -->
-          </select>
+          <select id="symptom" class="w-full border rounded-xl px-3 py-2 mt-1 text-sm"></select>
         </div>
-
+        <div>
+          <label class="text-sm text-slate-600">検索（名称/英名/部位）</label>
+          <input id="search" type="text" class="w-full border rounded-xl px-3 py-2 mt-1 text-sm" placeholder="例：合谷 / Hegu / 手背" />
+        </div>
         <div id="list" class="grid grid-cols-1 gap-3 max-h-[calc(100vh-220px)] overflow-y-auto pr-2"></div>
       </div>
 
