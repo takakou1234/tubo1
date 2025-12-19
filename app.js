@@ -521,5 +521,5 @@ loadAll();
 setThreeStatus("loading...");
 viewer = startThreeViewer({
   containerEl: els.threeContainer,
-  modelUrl: new URL("../scene (2).glb", import.meta.url),
+  modelUrl: new URL("./assets/scene (2).glb", import.meta.url),
 });
