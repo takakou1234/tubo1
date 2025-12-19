@@ -362,16 +362,11 @@ function startThreeViewer({ containerEl, modelUrl }) {
         setThreeStatus(`highlight: ${matched}`);
         return tmpV.clone();
       }
-      if (coord) {
-        const xNorm = (coord?.x ?? 0) / 100;
-        const yNorm = (coord?.y ?? 0) / 230;
-        const x = THREE.MathUtils.lerp(modelBounds.min.x, modelBounds.max.x, xNorm);
-        const y = THREE.MathUtils.lerp(modelBounds.max.y, modelBounds.min.y, yNorm);
-        const zPad = (modelBounds.max.z - modelBounds.min.z) * 0.03 || 0.02;
-        const z = side === "back" ? modelBounds.min.z - zPad : modelBounds.max.z + zPad;
-        setThreeStatus(`highlight (fallback 2D): ${id}`);
-        return new THREE.Vector3(x, y, z);
-      }
+if (coord) {
+  setThreeStatus(`ノード未検出（2D無効）: ${id}`);
+  console.warn("node not found -> fallback blocked", { id, coord, aliases });
+  return null;
+}
       setThreeStatus(`ノード/座標なし: ${id}`);
       return null;
     })();
