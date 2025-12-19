@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
 const els = {
   mode: document.getElementById("mode"),
@@ -18,6 +20,81 @@ let coordsDB = { front: {}, back: {} };
 
 let coordBlinkTimeout = 0;
 let viewer = null;
+
+// 手動対応表: card ID -> GLBノード名（PT_付き）
+const nodeNameMap = {
+  // LI
+  LI1: "PT_LI1",
+  LI2: "PT_LI2",
+  LI3: "PT_LI3",
+  LI4: "PT_LI4",
+  LI5: "PT_LI5",
+  LI6: "PT_LI6",
+  LI7: "PT_LI7",
+  LI8: "PT_LI8",
+  LI9: "PT_LI9",
+  LI10: "PT_LI10",
+  LI11: "PT_LI11",
+  LI12: "PT_LI12",
+  LI13: "PT_LI13",
+  LI14: "PT_LI14",
+  LI15: "PT_LI15",
+  LI16: "PT_LI16",
+  LI17: "PT_LI17",
+  LI18: "PT_LI18",
+  LI19: "PT_LI19",
+  LI20: "PT_LI20",
+  // ST
+  ST1: "PT_ST1",
+  ST2: "PT_ST2",
+  ST3: "PT_ST3",
+  ST4: "PT_ST4",
+  ST5: "PT_ST5",
+  ST6: "PT_ST6",
+  ST7: "PT_ST7",
+  ST8: "PT_ST8",
+  ST9: "PT_ST9",
+  ST10: "PT_ST10",
+  ST11: "PT_ST11",
+  ST12: "PT_ST12",
+  ST13: "PT_ST13",
+  ST14: "PT_ST14",
+  ST15: "PT_ST15",
+  ST16: "PT_ST16",
+  ST17: "PT_ST17",
+  ST18: "PT_ST18",
+  ST19: "PT_ST19",
+  ST20: "PT_ST20",
+  ST21: "PT_ST21",
+  ST22: "PT_ST22",
+  ST23: "PT_ST23",
+  ST24: "PT_ST24",
+  ST25: "PT_ST25",
+  ST26: "PT_ST26",
+  ST27: "PT_ST27",
+  ST28: "PT_ST28",
+  ST29: "PT_ST29",
+  ST30: "PT_ST30",
+  ST31: "PT_ST31",
+  ST32: "PT_ST32",
+  ST33: "PT_ST33",
+  ST34: "PT_ST34",
+  ST35: "PT_ST35",
+  ST36: "PT_ST36",
+  // 有名ツボ追加
+  PC6: "PT_PC6",
+  HT7: "PT_HT7",
+  SP6: "PT_SP6",
+  LV3: "PT_LV3",
+  LR3: "PT_LV3", // 別表記
+  GB20: "PT_GB20",
+  GB21: "PT_GB21",
+  BL40: "PT_BL40",
+  KI3: "PT_KI3",
+  GV20: "PT_DU20", // 同義
+  DU20: "PT_DU20",
+  CV12: "PT_CV12",
+};
 
 async function loadAll() {
   const [points, symptoms, coords] = await Promise.all([
@@ -135,11 +212,6 @@ function blinkCoord(id) {
   const cFront = coordsDB?.front?.[id] ?? null;
   const cBack = coordsDB?.back?.[id] ?? null;
   const c = cFront ?? cBack;
-  if (!c) {
-    setThreeStatus(`座標未登録: ${id}`);
-    return;
-  }
-
   if (!viewer) {
     setThreeStatus("3D読み込み中…（少し待ってからクリックしてください）");
     return;
@@ -150,9 +222,9 @@ function blinkCoord(id) {
     viewer?.clearHighlight?.();
   }, 1800);
 
-  viewer.highlightCoord({
+  viewer.highlightPoint({
     coord: c,
-    side: cFront ? "front" : "back",
+    side: cFront ? "front" : cBack ? "back" : null,
     id,
   });
 }
@@ -203,11 +275,17 @@ function startThreeViewer({ containerEl, modelUrl }) {
   scene.add(group);
 
   const loader = new GLTFLoader();
+  const draco = new DRACOLoader();
+  draco.setDecoderPath("https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/");
+  loader.setDRACOLoader(draco);
+  loader.setMeshoptDecoder(MeshoptDecoder);
 
   let mixer = null;
   let modelBounds = null;
   let highlightMesh = null;
   let highlightInterval = 0;
+  const pointNodeIndex = new Map(); // key -> Object3D (aliases registered during traverse)
+  const tmpV = new THREE.Vector3();
 
   const setHighlightVisible = (on) => {
     if (!highlightMesh) return;
@@ -220,22 +298,63 @@ function startThreeViewer({ containerEl, modelUrl }) {
     setHighlightVisible(false);
   };
 
-  const highlightCoord = ({ coord, side, id }) => {
-    if (!modelBounds) {
+  const highlightPoint = ({ coord, side, id }) => {
+    if (!highlightMesh || !modelBounds) {
       setThreeStatus("3D読み込み中…（座標の反映待ち）");
       return;
     }
-    if (!highlightMesh) return;
 
-    const xNorm = (coord?.x ?? 0) / 100;
-    const yNorm = (coord?.y ?? 0) / 230;
+    const ptName = (() => {
+      const mapped = nodeNameMap[id.toUpperCase()];
+      if (mapped) return mapped;
+      const m = String(id).toUpperCase().match(/^([A-Z]+)(\d+)$/);
+      if (!m) return null;
+      const [, prefix, num] = m;
+      const padded = num.padStart(2, "0");
+      return `PT_${prefix}${padded}`;
+    })();
 
-    const x = THREE.MathUtils.lerp(modelBounds.min.x, modelBounds.max.x, xNorm);
-    const y = THREE.MathUtils.lerp(modelBounds.max.y, modelBounds.min.y, yNorm);
-    const zPad = (modelBounds.max.z - modelBounds.min.z) * 0.03 || 0.02;
-    const z = side === "back" ? modelBounds.min.z - zPad : modelBounds.max.z + zPad;
+    const aliases = (() => {
+      const raw = String(id).toUpperCase();
+      const m = raw.match(/^([A-Z]+)(\d+)$/);
+      if (!m) return [raw];
+      const [, prefix, num] = m;
+      const padded = num.padStart(2, "0");
+      const mapped = nodeNameMap[raw];
+      return [
+        mapped,
+        ptName,
+        `PT_${prefix}${num}`, // 非ゼロパディング
+        `PT_${prefix}${padded}`,
+        raw,
+        `${prefix}${num}`,
+        `${prefix}${padded}`,
+      ].filter(Boolean);
+    })();
 
-    highlightMesh.position.set(x, y, z);
+    let targetPos = null;
+    let matched = aliases.find((a) => a && pointNodeIndex.has(a));
+    if (matched) {
+      const obj = pointNodeIndex.get(matched);
+      obj.getWorldPosition(tmpV);
+      group.worldToLocal(tmpV);
+      targetPos = tmpV.clone();
+      setThreeStatus(`highlight: ${matched}`);
+    } else if (coord) {
+      const xNorm = (coord?.x ?? 0) / 100;
+      const yNorm = (coord?.y ?? 0) / 230;
+      const x = THREE.MathUtils.lerp(modelBounds.min.x, modelBounds.max.x, xNorm);
+      const y = THREE.MathUtils.lerp(modelBounds.max.y, modelBounds.min.y, yNorm);
+      const zPad = (modelBounds.max.z - modelBounds.min.z) * 0.03 || 0.02;
+      const z = side === "back" ? modelBounds.min.z - zPad : modelBounds.max.z + zPad;
+      targetPos = new THREE.Vector3(x, y, z);
+      setThreeStatus(`highlight (fallback 2D): ${id}`);
+    } else {
+      setThreeStatus(`ノード/座標なし: ${id}`);
+      return;
+    }
+
+    highlightMesh.position.copy(targetPos);
 
     clearHighlight();
     setHighlightVisible(true);
@@ -244,12 +363,9 @@ function startThreeViewer({ containerEl, modelUrl }) {
       on = !on;
       setHighlightVisible(on);
     }, 180);
-    setThreeStatus(`highlight: ${id}`);
   };
 
-  loader.load(
-    modelUrl.toString(),
-    (gltf) => {
+  const onGltfLoaded = (gltf) => {
       group.add(gltf.scene);
 
       // ざっくり中央寄せ（モデルにより調整が必要）
@@ -276,6 +392,30 @@ function startThreeViewer({ containerEl, modelUrl }) {
       highlightMesh.visible = false;
       group.add(highlightMesh);
 
+      gltf.scene.traverse((obj) => {
+        if (!obj?.name) return;
+        const name = String(obj.name);
+        const upper = name.toUpperCase();
+        // 1) そのまま
+        if (!pointNodeIndex.has(name)) pointNodeIndex.set(name, obj);
+        if (!pointNodeIndex.has(upper)) pointNodeIndex.set(upper, obj);
+
+        // 2) PT_ 接頭辞（推奨形式）
+        if (upper.startsWith("PT_") && !pointNodeIndex.has(upper)) pointNodeIndex.set(upper, obj);
+
+        // 3) LI4_合谷 など「<ID>_」形式
+        const m = upper.match(/^([A-Z]+)(\d+)[_\\s-]?.*$/);
+        if (m) {
+          const [, prefix, num] = m;
+          const compact = `${prefix}${num}`;
+          const padded = `${prefix}${num.padStart(2, "0")}`;
+          if (!pointNodeIndex.has(compact)) pointNodeIndex.set(compact, obj);
+          if (!pointNodeIndex.has(padded)) pointNodeIndex.set(padded, obj);
+          const pt = `PT_${padded}`;
+          if (!pointNodeIndex.has(pt)) pointNodeIndex.set(pt, obj);
+        }
+      });
+
       if (gltf.animations && gltf.animations.length) {
         mixer = new THREE.AnimationMixer(gltf.scene);
         gltf.animations.forEach((clip) => mixer.clipAction(clip).play());
@@ -283,17 +423,58 @@ function startThreeViewer({ containerEl, modelUrl }) {
       } else {
         setThreeStatus("loaded");
       }
-    },
-    (ev) => {
-      if (!ev.total) return;
-      const pct = Math.round((ev.loaded / ev.total) * 100);
-      setThreeStatus(`loading... ${pct}%`);
-    },
-    (err) => {
-      console.error(err);
-      setThreeStatus("failed to load glb (check path / server)");
-    },
-  );
+  };
+
+  const onGltfError = (err) => {
+    console.error(err);
+    const msg = err?.message ? String(err.message) : String(err);
+    setThreeStatus(`failed to load glb: ${msg}`);
+  };
+
+  const validateGlb = (arrayBuffer) => {
+    const bytes = arrayBuffer.byteLength;
+    if (bytes < 20) return { ok: false, reason: `too small (${bytes} bytes)` };
+
+    const dv = new DataView(arrayBuffer);
+    const magic =
+      String.fromCharCode(dv.getUint8(0)) +
+      String.fromCharCode(dv.getUint8(1)) +
+      String.fromCharCode(dv.getUint8(2)) +
+      String.fromCharCode(dv.getUint8(3));
+    if (magic !== "glTF") return { ok: false, reason: `not a GLB (magic=${magic})` };
+
+    const version = dv.getUint32(4, true);
+    if (version !== 2) return { ok: false, reason: `unsupported version ${version}` };
+
+    const declaredLen = dv.getUint32(8, true);
+    if (declaredLen !== bytes) {
+      return {
+        ok: false,
+        reason: `truncated or corrupt (header length=${declaredLen}, file size=${bytes})`,
+      };
+    }
+
+    return { ok: true };
+  };
+
+  // `loader.load()` の内部エラー（RangeError）を避けるため、先にfetchして整合性チェックしてからparseする
+  (async () => {
+    try {
+      setThreeStatus("downloading...");
+      const res = await fetch(modelUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const ab = await res.arrayBuffer();
+
+      const v = validateGlb(ab);
+      if (!v.ok) throw new Error(`GLB ${v.reason}`);
+
+      const basePath = new URL("./", modelUrl).toString();
+      setThreeStatus("parsing...");
+      loader.parse(ab, basePath, onGltfLoaded, onGltfError);
+    } catch (e) {
+      onGltfError(e);
+    }
+  })();
 
   const clock = new THREE.Clock();
   const resize = () => {
@@ -319,13 +500,14 @@ function startThreeViewer({ containerEl, modelUrl }) {
   tick();
 
   return {
-    highlightCoord,
+    highlightPoint,
     clearHighlight,
     dispose() {
       clearHighlight();
       window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
       controls.dispose();
+      draco.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     },
