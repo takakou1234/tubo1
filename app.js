@@ -476,7 +476,7 @@ if (coord) {
       controls.target.set(0, size.y * 0.1, 0);
       controls.update();
 
-      const r = maxAxis * 0.036;
+      const r = maxAxis * 0.012;
       highlightMesh = new THREE.Mesh(
         new THREE.SphereGeometry(r, 24, 16),
         new THREE.MeshStandardMaterial({
